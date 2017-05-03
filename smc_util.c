@@ -155,22 +155,22 @@ kern_return_t SMCCall(int index, SMCKeyData_t *inputStructure, SMCKeyData_t *out
     IOItemCount inputStructureSize = sizeof(SMCKeyData_t);
     IOByteCount outputStructureSize = sizeof(SMCKeyData_t);
     
-   return IOConnectMethodStructureIStructureO(
+   /*return IOConnectMethodStructureIStructureO(
                conn,
                index,
                inputStructureSize,
                &outputStructureSize,
                inputStructure,
-               outputStructure);
+               outputStructure);*/
 
-    /*return IOConnectCallStructMethod(conn,
+    return IOConnectCallStructMethod(conn,
                                      index,
 									 inputStructure,
-									 structureInputSize,
+									 inputStructureSize,
 									 outputStructure,
-									 &structureOutputSize);
+									 &outputStructureSize);
 
-    return IOConnectCallStructMethod((mach_port_t)conn,
+    /*return IOConnectCallStructMethod((mach_port_t)conn,
                                      index,
                                      (const void*)&inputStructure,
                                      inputStructureSize,
