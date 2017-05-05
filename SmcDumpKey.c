@@ -43,6 +43,7 @@
 #define APPLESMC_CMD_PORT	(APPLESMC_START + 0x04)
 
 #define APPLESMC_READ_CMD		0x10
+#define APPLESMC_WRITE_CMD		0x11
 #define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
 #define APPLESMC_GET_KEY_TYPE_CMD	0x13
 
@@ -149,6 +150,30 @@ read_smc(uint8_t cmd, const uint8_t *key, uint8_t *buf, uint8_t len)
   return 0;
 }
 
+int write_smc(uint8_t cmd, const uint8_t *key, uint8_t *buffer, uint8_t len)
+{
+        int i;
+
+        if (send_byte(cmd, APPLESMC_CMD_PORT) || send_argument(key)) {
+                fprintf(stderr,"%.4s: write arg fail\n", key);
+                return -1;
+        }
+
+        if (send_byte(len, APPLESMC_DATA_PORT)) {
+                fprintf(stderr,"%.4s: write len fail\n", key);
+                return -1;
+        }
+
+        for (i = 0; i < len; i++) {
+                if (send_byte(buffer[i], APPLESMC_DATA_PORT)) {
+                        fprintf(stderr,"%s: write data fail\n", key);
+                        return -1;
+                }
+        }
+
+        return 0;
+}
+
 
 int
 main(int argc, char **argv)
@@ -157,7 +182,7 @@ main(int argc, char **argv)
   uint8_t data_buf[UCHAR_MAX];
   uint8_t i;
 
-  if (argc != 2 || strlen(argv[1]) != APPLESMC_KEY_NAME_LEN) {
+  if (argc < 2 || strlen(argv[1]) != APPLESMC_KEY_NAME_LEN) {
     fprintf(stderr, "\nUsage: %s <4-char-key-name>\n\n", argv[0]);
     return -1;
   }
@@ -188,6 +213,13 @@ main(int argc, char **argv)
     printf(isprint(data_buf[i]) ? "%c" : "\\x%02x",
            (uint8_t)data_buf[i]);
   printf("\"\n");
+
+  if (argc == 3) {
+	uint8_t val = atoi(argv[2]);
+	printf("target value: %02x\n",val);
+	if (write_smc(APPLESMC_WRITE_CMD,(uint8_t*)argv[1],&val,1))
+		fprintf(stderr,"\nwrite_smc get_key_data error\n\n");
+  }
 
   return 0;
 }
