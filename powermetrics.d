@@ -49,6 +49,7 @@ typedef struct SMCParamStruct {
     SMCVersion     vers;
     SMCPLimitData  pLimitData;
     SMCKeyInfoData keyInfo;
+	uint16_t padding;
     uint8_t        result;
     uint8_t        status;
     uint8_t        data8;
@@ -74,8 +75,13 @@ pid$target::IOConnectCallStructMethod:entry
     inputStruct = (struct SMCParamStruct *) copyin(arg2, sizeof(struct SMCParamStruct)); 
 
     /* Decode UInt32 key to human readable. SMC keys are 4 char constants */
-    printf("Key: %c%c%c%c\n", inputStruct->key >> 24 & 0xff,
+    printf("Key: %c%c%c%c, io count %d, result %02x, status %02x, data8 %02x, data32 %08x, bytes[0:1] %02x %02x\n", 
+			      inputStruct->key >> 24 & 0xff,
                               inputStruct->key >> 16 & 0xff,
                               inputStruct->key >>  8 & 0xff,
-                              inputStruct->key       & 0xff);
+                              inputStruct->key       & 0xff,
+				inputStruct->keyInfo.dataSize,
+				inputStruct->result, inputStruct->status,
+			      inputStruct->data8, inputStruct->data32,
+				inputStruct->bytes[0],inputStruct->bytes[1]);
 }
