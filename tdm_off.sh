@@ -3,6 +3,4 @@
 sleep 1
 ./SmcDumpKey MVMR 2
 sleep 2
-DISPLAY=:0.0 xrandr -s 1
-sleep 2
-DISPLAY=:0.0 xrandr -s 0
+DISPLAY=:0.0 xrandr --output eDP --auto
