@@ -6,7 +6,7 @@ For convenience, I moved this list over from https://app.assembla.com/spaces/fak
 |-----|------|------|--------------|------------- |
 |#KEY | `ui32` |  4  | K_CONST       | Number of Keys  |
 |+LKS | flag |  1  | K_FUNC_R      | Returns whether or not lock bits are set.  Returns 3 bit value, where  each bit represents one of the three lock bit regions.  1 => set.  |
-|AL!  | ui8  |  1  | K_VAR_RW      | Each "1" bit in gui8ALSForced indicates that a certain writable ALS variable has been overridden (i.e., forced) by the host OS or host diagnostics, and that variable should not be written by the SMC again until the applicable bit is cleared in gui8ALSForced. Currently, the used bits are:<ul><li>Bit 0 protects gui16ALSScale<li>Bit 1 protects ui16Chan0 and ui16Chan1 of aalsvALSData<li>Bit 2 protects gui16ALSLux<li>Bit 3 protects fHighGain of aalsvALSData<li>Bit 4 protects gai16ALSTemp[MAX_ALS_SENSORS]</ul>All other bits are reserved and should be cleared to 0.  |
+|AL!  | ui8  |  1  | K_VAR_RW      | Each "1" bit in gui8ALSForced indicates that a certain writable ALS variable has been overridden (i.e., forced) by the host OS or host diagnostics, and that variable should not be written by the SMC again until the applicable bit is cleared in gui8ALSForced. Currently, the used bits are: <ul><li>Bit 0 protects gui16ALSScale<li>Bit 1 protects ui16Chan0 and ui16Chan1 of aalsvALSData<li>Bit 2 protects gui16ALSLux<li>Bit 3 protects fHighGain of aalsvALSData<li>Bit 4 protects gai16ALSTemp[MAX_ALS_SENSORS]</ul> All other bits are reserved and should be cleared to 0.  |
 |ALA0 | {ala |     | K_VAR_ATOM_RW | ALS analog lux calculation information  |
 |ALA1 | {ala |     | K_VAR_ATOM_RW | ALS analog lux calculation information  |
 |ALA2 | {ala |     | K_VAR_ATOM_RW | ALS analog lux calculation information  |
@@ -76,7 +76,7 @@ For convenience, I moved this list over from https://app.assembla.com/spaces/fak
 |HBWK | flag |  1  | K_VAR_RW      | Allows a one-time lid-open event to "wake" the system from S5. |
 |HDBS | ui8  |  1  | K_VAR_ATOM_R  | Hang Detect. A/B switch value |
 |HDST | ui16 |  2  | K_VAR_ATOM_R  | Hang Detect. Current System State Machine value |
-|HDSW | ui32 |  4  | K_VAR_ATOM_R  | Hang Detect. {Sleep[15:0]|Wake[15:0]} Count. |
+|HDSW | ui32 |  4  | K_VAR_ATOM_R  | Hang Detect. {Sleep[15:0],Wake[15:0]} Count. |
 |IC0C | fp79 |  2  | K_VAR_ATOM_RW | CPU 0 core current. |
 |ID0R | fp5b |  2  | K_VAR_ATOM_RW | DC In S0 rail current. |
 |ID5R | fp4c |  2  | K_VAR_ATOM_RW | DC In S5 rail current. |
@@ -217,86 +217,55 @@ Bit mappings for M72/M78/K2/K3 are as follows:
  0x8200  -126    Sensor failed to initialize
  0x8100  -127    Sensor skipped
  0x8000  -128    Temperature can't be read 
-|SLPT | sp78 | 2 | K_VAR_ATOM_RW | LCD Prochot threshold. TL0P temp at which Prochot will be asserted. |
-|SLST | sp78 | 2 | K_VAR_ATOM_RW | LCD Sleep threshold. TL0P temp at which Sleep will be requested. |
-|SLTg | sp78 | 2 | K_VAR_ATOM_RW | LCD Fan Temp Target |
-|SLTp | sp78 | 2 | K_VAR_ATOM_RW | LCD Power Temp Target |
-|SOTg | sp78 | 2 | K_VAR_ATOM_RW | ODD Thermal Target Temp |
-|SPH0 | ui16 | 2 | K_VAR_R | CPU Prochot event count since last boot |
-|SPHR | ui32 | 4 | K_VAR_ATOM_R|  
-Any bit set to 1 identifies an active Prochot requestor.
- For K2/K3, the following bits are defined:
- Bit 31:  User-forced Prochot
- Bit 30:  RSVD for "Prochot forever in lieu of Thermtrip" (currently unused)
- Bits 4-29:  RSVD
- Bit  3:  Prochot Power Index
- Bit  2:  Power-supply overcurrent
- Bit  1:  Power-supply overtemp
- Bit  0:  LCD panel overtemp 
-|SPHS | ui8 | 1 | K_VAR_ATOM_RW | Indicates if PROCHOT was ever set after entering S0, DIAG_LOG |
-|SPHT | ui16 | 2 | K_VAR_ATOM_R|  
-Current state of all Prochots and whether the SMC itself is
- asserting each one.
- Bits 0-7:   Prochot state for CPUs 0-7, respectively (1 bit per CPU).
-             1 = Prochot asserted.  0 = Prochot deasserted.
- Bits 8-15:  The SMC itself is asserting Prochot for CPUs 0-7,
-             respectively (1 bit per CPU; bit 8 corresponds to CPU 0,
-             bit 15 corresponds to CPU 7).
-             1 = SMC is asserting Prochot to that CPU.
-             0 = SMC is NOT asserting Prochot to that CPU.
- 
-|SPHZ | ui8 | 1 | K_FUNC_W|  
-Drive SMC Prochot(s).  In the single byte of write data,
- bits 0 through 7 control the Prochots for CPUs 0 through 7,
- respectively.  For example, writing 0x01 sets Prochot for CPU 0, while
- writing 0x80 sets Prochot for CPU 7, and writing 0xFF sets all 8
- Prochots.  Setting bits for CPUs that don't exist does nothing
- and causes no harm.
- 
-|SPS! | ui16 | 2 | KWPRIV_VAR_ATOM_RW|  
-Power force bits. Setting bit(s) will prevent periodic power calculations from overwriting
- existing data. Bit mapping varies by platform and is intended for expert use only. 
-|SpCP | fps4 | 2 | K_VAR_ATOM_R|  
-Read-only PS I-squared sum Prochot threshold in U27.4 format.
- Sample computation:  [(Prochot threshold in watts)/12v]^2 * (Filter depth = 24576)
-                      Hex value is the above * 16. 
-|SpCS | fps4 | 2 | K_VAR_ATOM_R|  
-Read-only PS I-squared sum target for P3-level PS current control, in U27.4 format.
- Sample computation:  [(Target in watts)/12v]^2 * (Filter depth = 24576)
-                      Hex value is the above * 16. 
-|SpCT | fpc4 | 2 | K_VAR_ATOM_R|  
-Read-only PS I-squared target (non-summed) for initializing PS current control filter history, in U12.4 format.
- Sample computation:  [(Target in watts)/12v]^2.
-                      Hex value is the above * 16. 
-|SpPT | sp78 | 2 | K_VAR_ATOM_RW | PS Prochot threshold. Tp0P temp at which Prochot will be asserted |
-|SpST | sp78 | 2 | K_VAR_ATOM_RW | PS Sleep threshold. Tp0P temp at which Sleep will be requested. |
-|SpTg | sp78 | 2 | K_VAR_ATOM_RW | PS Fan Temp Target |
-|TA0P | sp78 | 2 | K_VAR_ATOM_RW | Ambient temp |
-|TC0D | sp78 | 2 | K_VAR_ATOM_RW | CPU 0 die temp |
-|TC0H | sp78 | 2 | K_VAR_ATOM_RW | CPU 0 Heatsink temp |
-|TC0P | sp78 | 2 | K_VAR_ATOM_RW | CPU 0 Proximity temp |
-|TG0D | sp78 | 2 | K_VAR_ATOM_RW | GPU 0 die temp |
-|TG0H | sp78 | 2 | K_VAR_ATOM_RW | GPU 0 Heatsink temp |
-|TG0P | sp78 | 2 | K_VAR_ATOM_RW | GPU 0 Proximity temp |
-|TH0P | sp78 | 2 | K_VAR_ATOM_RW | HardDisk proximity temp |
-|TL0P | sp78 | 2 | K_VAR_ATOM_RW | LCD proximity temp |
-|TO0P | sp78 | 2 | K_VAR_ATOM_RW | Optical Drive proximity temp |
-|TW0P | sp78 | 2 | K_VAR_ATOM_RW | Airport temp |
-|Tm0P | sp78 | 2 | K_VAR_ATOM_RW | Misc Local temp |
-|Tp0P | sp78 | 2 | K_VAR_ATOM_RW | Power Supply Proximity temp |
-|UPRC | ui16 | 2 | K_CONST | Type of SMC microcontroller upon which system is based (value of UPROC macro) |
-|VC0C | fp1f | 2 | K_VAR_ATOM_RW | CPU 0 core voltage. |
-|VC0c | ui16 | 2 | K_VAR_ATOM_RW | CPU 0 core voltage. Raw ADC input value. |
-|VD0R | fp4c | 2 | K_VAR_ATOM_RW | DC In S0 rail voltage. |
-|VD5R | fp4c | 2 | K_VAR_ATOM_RW | DC In S5 rail voltage. |
-|VG0R | fp4c | 2 | K_VAR_ATOM_RW | GPU 0 rail voltage. |
-|VG0r | ui16 | 2 | K_VAR_ATOM_RW | GPU 0 rail voltage. Raw ADC input value. |
-|dBA0 | sp78 | 2 | K_VAR_ATOM_R | Acoustic Reporting. Fan 0 Noise Component (dBA). |
-|dBA1 | sp78 | 2 | K_VAR_ATOM_R | Acoustic Reporting. Fan 1 Noise Component (dBA). |
-|dBA2 | sp78 | 2 | K_VAR_ATOM_R | Acoustic Reporting. Fan 2 Noise Component (dBA). |
-|dBAH | sp78 | 2 | K_VAR_ATOM_R | Acoustic Reporting. HDD Noise Component (dBDA). |
-|dBAT | sp78 | 2 | K_VAR_ATOM_R | Acoustic Reporting. Total Noise of all calculated components (dBDA). |
-|zDBG | ui8 | 1 | K_FUNC_RW | Set this to 1 to enable SCIF debug output to USB 0 Port |
+
+--->
+
+|SLPT | sp78 |  2  | K_VAR_ATOM_RW | LCD Prochot threshold. TL0P temp at which Prochot will be asserted. |
+|SLST | sp78 |  2  | K_VAR_ATOM_RW | LCD Sleep threshold. TL0P temp at which Sleep will be requested. |
+|SLTg | sp78 |  2  | K_VAR_ATOM_RW | LCD Fan Temp Target |
+|SLTp | sp78 |  2  | K_VAR_ATOM_RW | LCD Power Temp Target |
+|SOTg | sp78 |  2  | K_VAR_ATOM_RW | ODD Thermal Target Temp |
+|SPH0 | ui16 |  2  | K_VAR_R       | CPU Prochot event count since last boot |
+|SPHR | ui32 |  4  | K_VAR_ATOM_R  | Any bit set to 1 identifies an active Prochot requestor.  For K2/K3, the following bits are defined: Bit 31:  User-forced Prochot Bit 30:  RSVD for "Prochot forever in lieu of Thermtrip" (currently unused) Bits 4-29:  RSVD Bit  3:  Prochot Power Index Bit  2:  Power-supply overcurrent Bit  1:  Power-supply overtemp Bit  0:  LCD panel overtemp |
+|SPHS | ui8  |  1  | K_VAR_ATOM_RW | Indicates if PROCHOT was ever set after entering S0, DIAG_LOG |
+|SPHT | ui16 |  2  | K_VAR_ATOM_R  |  Current state of all Prochots and whether the SMC itself is asserting each one.  Bits 0-7:   Prochot state for CPUs 0-7, respectively (1 bit per CPU).  1 = Prochot asserted.  0 = Prochot deasserted.  Bits 8-15:  The SMC itself is asserting Prochot for CPUs 0-7, respectively (1 bit per CPU; bit 8 corresponds to CPU 0, bit 15 corresponds to CPU 7).  1 = SMC is asserting Prochot to that CPU.  0 = SMC is NOT asserting Prochot to that CPU. |
+|SPHZ | ui8  |  1  | K_FUNC_W      |  Drive SMC Prochot(s).  In the single byte of write data, bits 0 through 7 control the Prochots for CPUs 0 through 7, respectively.  For example, writing 0x01 sets Prochot for CPU 0, while writing 0x80 sets Prochot for CPU 7, and writing 0xFF sets all 8 Prochots.  Setting bits for CPUs that don't exist does nothing and causes no harm. |
+|SPS! | ui16 |  2  | KWPRIV_VAR_ATOM_RW |  Power force bits. Setting bit(s) will prevent periodic power calculations from overwriting existing data. Bit mapping varies by platform and is intended for expert use only. |
+|SpCP | fps4 |  2  | K_VAR_ATOM_R  | Read-only PS I-squared sum Prochot threshold in U27.4 format.  Sample computation:  [(Prochot threshold in watts)/12v]^2 * (Filter depth = 24576) Hex value is the above * 16. |
+|SpCS | fps4 |  2  | K_VAR_ATOM_R  |  Read-only PS I-squared sum target for P3-level PS current control, in U27.4 format.  Sample computation:  [(Target in watts)/12v]^2 * (Filter depth = 24576) Hex value is the above * 16. |
+|SpCT | fpc4 |  2  | K_VAR_ATOM_R  | Read-only PS I-squared target (non-summed) for initializing PS current control filter history, in U12.4 format.  Sample computation:  [(Target in watts)/12v]^2.  Hex value is the above * 16. |
+|SpPT | sp78 |  2  | K_VAR_ATOM_RW | PS Prochot threshold. Tp0P temp at which Prochot will be asserted |
+|SpST | sp78 |  2  | K_VAR_ATOM_RW | PS Sleep threshold. Tp0P temp at which Sleep will be requested. |
+|SpTg | sp78 |  2  | K_VAR_ATOM_RW | PS Fan Temp Target |
+|TA0P | sp78 |  2  | K_VAR_ATOM_RW | Ambient temp |
+|TC0D | sp78 |  2  | K_VAR_ATOM_RW | CPU 0 die temp |
+|TC0H | sp78 |  2  | K_VAR_ATOM_RW | CPU 0 Heatsink temp |
+|TC0P | sp78 |  2  | K_VAR_ATOM_RW | CPU 0 Proximity temp |
+|TG0D | sp78 |  2  | K_VAR_ATOM_RW | GPU 0 die temp |
+|TG0H | sp78 |  2  | K_VAR_ATOM_RW | GPU 0 Heatsink temp |
+|TG0P | sp78 |  2  | K_VAR_ATOM_RW | GPU 0 Proximity temp |
+|TH0P | sp78 |  2  | K_VAR_ATOM_RW | HardDisk proximity temp |
+|TL0P | sp78 |  2  | K_VAR_ATOM_RW | LCD proximity temp |
+|TO0P | sp78 |  2  | K_VAR_ATOM_RW | Optical Drive proximity temp |
+|TW0P | sp78 |  2  | K_VAR_ATOM_RW | Airport temp |
+|Tm0P | sp78 |  2  | K_VAR_ATOM_RW | Misc Local temp |
+|Tp0P | sp78 |  2  | K_VAR_ATOM_RW | Power Supply Proximity temp |
+|UPRC | ui16 |  2  | K_CONST       | Type of SMC microcontroller upon which system is based (value of UPROC macro) |
+|VC0C | fp1f |  2  | K_VAR_ATOM_RW | CPU 0 core voltage. |
+|VC0c | ui16 |  2  | K_VAR_ATOM_RW | CPU 0 core voltage. Raw ADC input value. |
+|VD0R | fp4c |  2  | K_VAR_ATOM_RW | DC In S0 rail voltage. |
+|VD5R | fp4c |  2  | K_VAR_ATOM_RW | DC In S5 rail voltage. |
+|VG0R | fp4c |  2  | K_VAR_ATOM_RW | GPU 0 rail voltage. |
+|VG0r | ui16 |  2  | K_VAR_ATOM_RW | GPU 0 rail voltage. Raw ADC input value. |
+|dBA0 | sp78 |  2  | K_VAR_ATOM_R  | Acoustic Reporting. Fan 0 Noise Component (dBA). |
+|dBA1 | sp78 |  2  | K_VAR_ATOM_R  | Acoustic Reporting. Fan 1 Noise Component (dBA). |
+|dBA2 | sp78 |  2  | K_VAR_ATOM_R  | Acoustic Reporting. Fan 2 Noise Component (dBA). |
+|dBAH | sp78 |  2  | K_VAR_ATOM_R  | Acoustic Reporting. HDD Noise Component (dBDA). |
+|dBAT | sp78 |  2  | K_VAR_ATOM_R  | Acoustic Reporting. Total Noise of all calculated components (dBDA). |
+|zDBG | ui8  |  1  | K_FUNC_RW     | Set this to 1 to enable SCIF debug output to USB 0 Port |
+
+<!---
+
 |{ala | \0\0\0\0|     |K_DESC_STR|  
 ALS analog lux calculation information.
 struct ALSLuxLine {
