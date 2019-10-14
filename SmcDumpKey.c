@@ -221,5 +221,14 @@ main(int argc, char **argv)
 		fprintf(stderr,"\nwrite_smc get_key_data error\n\n");
   }
 
+  if (argc == 4) {
+    uint8_t val[2];
+    val[0] = atoi(argv[2]);
+    val[1] = atoi(argv[3]);
+    printf("target value: %02x%02x\n",val[0],val[1]);
+    if (write_smc(APPLESMC_WRITE_CMD,(uint8_t*)argv[1],val,2))
+      fprintf(stderr,"\nwrite_smc get_key_data error\n\n");
+  }
+
   return 0;
 }
